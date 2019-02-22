@@ -13,7 +13,6 @@ inside your current environment.
 Besides console scripts, the header (i.e. until _logger...) of this file can
 also be used as template for Python modules.
 
-Note: This skeleton file can be safely removed if not needed!
 """
 from __future__ import division, print_function, absolute_import
 
@@ -28,22 +27,6 @@ __copyright__ = "Joseph C. Hardin"
 __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
-
-
-def fib(n):
-    """Fibonacci example function
-
-    Args:
-      n (int): integer
-
-    Returns:
-      int: n-th Fibonacci number
-    """
-    assert n > 0
-    a, b = 1, 1
-    for i in range(n-1):
-        a, b = b, a+b
-    return a
 
 
 def parse_args(args):
@@ -62,10 +45,10 @@ def parse_args(args):
         action='version',
         version='inrad_reader {ver}'.format(ver=__version__))
     parser.add_argument(
-        dest="n",
-        help="n-th Fibonacci number",
-        type=int,
-        metavar="INT")
+        dest="file_glob",
+        help="file glob used to collect files",
+        type=str,
+        metavar="file_glob")
     parser.add_argument(
         '-v',
         '--verbose',

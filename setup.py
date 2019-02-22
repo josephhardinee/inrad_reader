@@ -14,9 +14,7 @@ from setuptools import setup
 # Add here console scripts and other entry points in ini-style format
 entry_points = """
 [console_scripts]
-# script_name = inrad_reader.module:function
-# For example:
-# fibonacci = inrad_reader.skeleton:run
+inrad_to_cf = inrad_reader.inrad_to_cf:inrad_to_cf
 """
 
 
