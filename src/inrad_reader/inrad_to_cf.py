@@ -1,24 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-This is a skeleton file that can serve as a starting point for a Python
-console script. To run this script uncomment the following line in the
-entry_points section in setup.py:
+import xarray as xr 
+import pandas as pd
+import numpy as np
+import glob
+import pyart
+from datetime import datetime
+from datetime import timezone
 
-    [console_scripts]
-    fibonacci = inrad_reader.skeleton:run
-
-Then run `python setup.py install` which will install the command `fibonacci`
-inside your current environment.
-Besides console scripts, the header (i.e. until _logger...) of this file can
-also be used as template for Python modules.
-
-"""
-from __future__ import division, print_function, absolute_import
-
+from operator import itemgetter
+from itertools import groupby
 import argparse
 import sys
 import logging
+
+test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
 
 from inrad_reader import __version__
 
@@ -28,6 +24,36 @@ __license__ = "mit"
 
 _logger = logging.getLogger(__name__)
 
+SCAN_TYPE_MAPPING ={
+    0: 'other',
+    1: 'sector',
+    2: 'rhi',
+    4: 'ppi',
+    7: 'rhi'
+}
+
+MOMENT_NAME_MAPPING ={ 
+    'T': 'total_power',
+    'Z': 'reflectivity',
+    'V': 'mean_doppler_velocity',
+    'W': 'spectrum_width',
+    'ZDR' : 'differential_reflectivity',
+    'KDP' : "specific_differential_phase",
+    "PHIDP": "differential_phase",
+    "SQI": "normalized_coherent_power",
+    "RHOHV": "copol_correlation_coeff",
+    "HCLASS": "hydrometeor_classification"
+}
+
+def get_sweep_num_from_filename(filename):
+    parts = filename.split('sweep')
+    return int(parts[1].split('.nc')[0])
+    
+def get_sorted_list(filename_list_glob):
+    pass
+    filename_list = glob.glob(test_file_path + 'T_HAHA00_C_DEMS_20180701080230*.nc')
+    filename_list.sort(key=get_sweep_num_from_filename)
+    return filename_list
 
 def parse_args(args):
     """Parse command line parameters
@@ -39,7 +65,7 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     parser = argparse.ArgumentParser(
-        description="Just a Fibonnaci demonstration")
+        description="Indian weather radar reader")
     parser.add_argument(
         '--version',
         action='version',
@@ -85,14 +111,53 @@ def main(args):
     """
     args = parse_args(args)
     setup_logging(args.loglevel)
-    _logger.debug("Starting crazy calculations...")
-    print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
+    filename_glob = args.file_glob
+    # print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
+    radar = build_radar_object(filename_glob)
+
     _logger.info("Script ends here")
 
+def read_multi_radar(filename_glob):
+    """ Take a list of filenames and build up a pyart radar object
+    """
+
+    filename_list = get_sorted_list(filename_glob)
+    _logger.debug(f"Found {len(filename_list)} files to process.")
+    dset = xr.open_mfdataset(filename_list, concat_dim='radial', data_vars='different', decode_times=False)
+    
+    _range =  {'data': np.arange(0, dset.dims['bin']) * dset['gateSize'].values + dset['firstGateRange'].values}
+    fixed_angle = list(map(itemgetter(0), groupby(dset['elevationAngle'].values)))
+    num_rays_per_sweep = [np.count_nonzero(np.isclose(dset['elevationAngle'].values, val)) for val in fixed_angle]
+    sweep_start_ray_index = {'data': np.hstack((0, np.cumsum(num_rays_per_sweep)[0:-1]))}
+    sweep_end_ray_index = {'data': ( np.cumsum(num_rays_per_sweep)-1)}
+    time = {'data': dset['radialTime'],
+        'units': 'seconds since 1970-1-1 00:00:00.00'}
+    fields = {}
+
+
+    for moment_name in MOMENT_NAME_MAPPING:
+        fields[MOMENT_NAME_MAPPING[moment_name]] = {
+            'data': dset[moment_name].values,
+            'units': dset[moment_name].units,
+            'long_name': dset[moment_name].long_name
+        }
+    sweep_mode = []
+    for _ in np.arange(dset.dims['sweep']):
+        sweep_mode.append('manual_'+SCAN_TYPE_MAPPING[int(dset['scanType'].values)])
+
+    radar = pyart.core.Radar(time=time, _range=_range, azimuth={'data': dset['radialAzim'].values}, elevation={'data': dset['radialElev'].values},
+                            fixed_angle={'data': fixed_angle}, sweep_start_ray_index = sweep_start_ray_index, sweep_end_ray_index = sweep_end_ray_index,
+                            longitude={'data': dset['siteLon'].values}, latitude={'data': dset['siteLat'].values}, altitude={'data': dset['siteAlt'].values},
+                            scan_type=SCAN_TYPE_MAPPING[int(dset['scanType'].values)], sweep_number={'data': np.arange(0,dset.dims['sweep'])},
+                            fields=fields, metadata={}, sweep_mode=sweep_mode
+                            )
+    
+    return radar
 
 def run():
     """Entry point for console_scripts
     """
+
     main(sys.argv[1:])
 
 
