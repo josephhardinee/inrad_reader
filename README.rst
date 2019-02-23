@@ -1,19 +1,16 @@
 ============
 inrad_reader
 ============
-
-
-Add a short description here!
+This is a reader ofr inrad files that converts them to a pyart object. 
 
 
 Description
 ===========
-
-A longer description of your project goes here...
+This library reads in inrad fiels and converts them to pyart objects where they
+can then be written to cf radial.
 
 
 Note
 ====
+TODO: Clean up metadata, read in calib parameters, finish command line utility
 
-This project has been set up using PyScaffold 3.0.3. For details and usage
-information on PyScaffold see http://pyscaffold.org/.

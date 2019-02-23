@@ -76,6 +76,11 @@ def parse_args(args):
         type=str,
         metavar="file_glob")
     parser.add_argument(
+        dest="output_filename",
+        help="Output Filename",
+        type=str,
+        metavar="output_filename")
+    parser.add_argument(
         '-v',
         '--verbose',
         dest="loglevel",
@@ -113,7 +118,10 @@ def main(args):
     setup_logging(args.loglevel)
     filename_glob = args.file_glob
     # print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
-    radar = build_radar_object(filename_glob)
+    radar = read_multi_radar(args.file_glob)
+    pyart.io.write_cfradial(args.output_filename, radar)
+
+    
 
     _logger.info("Script ends here")
 
