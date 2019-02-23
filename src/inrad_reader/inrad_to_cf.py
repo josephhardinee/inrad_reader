@@ -149,7 +149,7 @@ def read_multi_radar(filename_glob):
                             fixed_angle={'data': fixed_angle}, sweep_start_ray_index = sweep_start_ray_index, sweep_end_ray_index = sweep_end_ray_index,
                             longitude={'data': dset['siteLon'].values}, latitude={'data': dset['siteLat'].values}, altitude={'data': dset['siteAlt'].values},
                             scan_type=SCAN_TYPE_MAPPING[int(dset['scanType'].values)], sweep_number={'data': np.arange(0,dset.dims['sweep'])},
-                            fields=fields, metadata={}, sweep_mode=sweep_mode
+                            fields=fields, metadata={}, sweep_mode={'data': sweep_mode}
                             )
     
     return radar
