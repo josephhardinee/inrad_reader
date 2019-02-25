@@ -14,7 +14,7 @@ import argparse
 import sys
 import logging
 
-test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
+#test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
 
 from inrad_reader import __version__
 
@@ -51,7 +51,7 @@ def get_sweep_num_from_filename(filename):
     
 def get_sorted_list(filename_list_glob):
     pass
-    filename_list = glob.glob(test_file_path + 'T_HAHA00_C_DEMS_20180701080230*.nc')
+    filename_list = glob.glob(filename_list_glob)
     filename_list.sort(key=get_sweep_num_from_filename)
     return filename_list
 
