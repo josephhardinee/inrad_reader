@@ -145,11 +145,12 @@ def read_multi_radar(filename_glob):
     fields = {}
 
     for moment_name in MOMENT_NAME_MAPPING:
-        fields[MOMENT_NAME_MAPPING[moment_name]] = {
-            'data': dset[moment_name].values,
-            'units': dset[moment_name].units,
-            'long_name': dset[moment_name].long_name
-        }
+        if moment_name in dset:
+            fields[MOMENT_NAME_MAPPING[moment_name]] = {
+                'data': dset[moment_name].values,
+                'units': dset[moment_name].units,
+                'long_name': dset[moment_name].long_name
+            }
     sweep_mode = []
     for _ in np.arange(dset.dims['sweep']):
         sweep_mode.append('manual_' + SCAN_TYPE_MAPPING[int(dset['scanType'].values)])
