@@ -14,7 +14,7 @@ import argparse
 import sys
 import logging
 import json
-from . import default_config.default_config as default_config
+from .default_config import default_config as default_config
 
 # test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
 
@@ -76,6 +76,8 @@ def parse_args(args):
         action='version',
         version='inrad_reader {ver}'.format(ver=__version__))
     parser.add_argument(
+        '-fg',
+        '--file_glob',
         dest="file_glob",
         help="file glob used to collect files",
         type=str,
@@ -118,7 +120,7 @@ def parse_args(args):
         dest="config_file",
         help="Configuration file",
         metavar="config_file",
-        type='str',
+        type=str,
         default=False
     )
     return parser.parse_args(args)
@@ -153,6 +155,10 @@ def main(args):
     else:
         config = default_config
 
+    print(config)
+    print(np.array(config['grid_shape']))
+    print(np.array(config['grid_limits']))
+
     radar = read_multi_radar(args.file_glob)
     
     if args.output_filename_radial:
@@ -165,11 +171,16 @@ def main(args):
         gatefilter.include_all()
 
         _logger.debug("Gridding radar file")
-        grid = pyart.map.grid_from_radars(radar, grid_shape = (10,400,400), grid_limits=((0,5000),(-250000,250000), (-250000,250000)), fields=('reflectivity','spectrum_width'),
-                                            gatefilter=gatefilter, weighting_function='Cressman', roi_func='dist')
+        grid = pyart.map.grid_from_radars(radar, grid_shape = tuple(config['grid_shape']), 
+                                            grid_limits=tuple(config['grid_limits']), 
+                                            fields=config['fields'],
+                                            gatefilter=gatefilter, 
+                                            weighting_function=config['weighting_function'],
+                                            roi_func=config['roi_func'])
 
         _logger.debug("Writting Gridded file")
-        pyart.io.write_grid(args.output_filename_gridded, grid, write_point_lon_lat_alt=True)
+        pyart.io.write_grid(args.output_filename_gridded, grid, 
+                                write_point_lon_lat_alt=config['write_point_lon_lat'])
 
 
 
