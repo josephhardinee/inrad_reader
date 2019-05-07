@@ -13,6 +13,8 @@ from itertools import groupby
 import argparse
 import sys
 import logging
+import json
+from . import default_config.default_config as default_config
 
 # test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
 
@@ -79,10 +81,23 @@ def parse_args(args):
         type=str,
         metavar="file_glob")
     parser.add_argument(
-        dest="output_filename",
-        help="Output Filename",
+        '-or',
+        '--output_radial',
+        dest="output_filename_radial",
+        help="Output Filename for CF/Radial file",
         type=str,
-        metavar="output_filename")
+        metavar="output_filename_radial",
+        default=False
+        )
+    parser.add_argument(
+        '-og',
+        '--output_gridded',
+        dest="output_filename_gridded",
+        help="Output filename for gridded file",
+        type=str,
+        metavar="output_filename_gridded",
+        default=False
+    )
     parser.add_argument(
         '-v',
         '--verbose',
@@ -97,6 +112,15 @@ def parse_args(args):
         help="set loglevel to DEBUG",
         action='store_const',
         const=logging.DEBUG)
+    parser.add_argument(
+        '-c',
+        '--config',
+        dest="config_file",
+        help="Configuration file",
+        metavar="config_file",
+        type='str',
+        default=False
+    )
     return parser.parse_args(args)
 
 
@@ -121,14 +145,39 @@ def main(args):
     setup_logging(args.loglevel)
     filename_glob = args.file_glob
     # print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
-    radar = read_multi_radar(args.file_glob)
-    pyart.io.write_cfradial(args.output_filename, radar)
+    config = False
 
-    _logger.info("Script ends here")
+    if args.config_file:
+        # Need to pass config values through to subfunctions. 
+        config = json.load(open(args.config_file))
+    else:
+        config = default_config
+
+    radar = read_multi_radar(args.file_glob)
+    
+    if args.output_filename_radial:
+        _logger.debug("Writing CF/Radial file")
+        pyart.io.write_cfradial(args.output_filename_radial, radar)
+    
+
+    if args.output_filename_gridded:
+        gatefilter = pyart.filters.GateFilter(radar)
+        gatefilter.include_all()
+
+        _logger.debug("Gridding radar file")
+        grid = pyart.map.grid_from_radars(radar, grid_shape = (10,400,400), grid_limits=((0,5000),(-250000,250000), (-250000,250000)), fields=('reflectivity','spectrum_width'),
+                                            gatefilter=gatefilter, weighting_function='Cressman', roi_func='dist')
+
+        _logger.debug("Writting Gridded file")
+        pyart.io.write_grid(args.output_filename_gridded, grid, write_point_lon_lat_alt=True)
+
 
 
 def read_multi_radar(filename_glob):
     """ Take a list of filenames and build up a pyart radar object
+
+    Parameters:
+    -----------
     """
 
     filename_list = get_sorted_list(filename_glob)

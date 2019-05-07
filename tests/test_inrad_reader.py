@@ -9,8 +9,15 @@ __author__ = "Joseph C. Hardin"
 __copyright__ = "Joseph C. Hardin"
 __license__ = "mit"
 
-test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
+test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/DEMS/'
 
 def test_inrad_reader_lists_files():
     radar = read_multi_radar(test_file_path + 'T_HAHA00_C_DEMS_20180701080230*')
     assert(type(radar) == pyart.core.radar.Radar)
+
+
+def test_config_file_reading():
+    assert False
+
+def test_write_gridded_file():
+    assert False
