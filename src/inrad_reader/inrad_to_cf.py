@@ -16,8 +16,6 @@ import logging
 import json
 from .default_config import default_config as default_config
 
-# test_file_path = '/Volumes/hard_lacie_hfs/data/indian_radar_data/'
-
 from inrad_reader import __version__
 
 __author__ = "Joseph C. Hardin"
@@ -70,7 +68,7 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     parser = argparse.ArgumentParser(
-        description="Indian weather radar reader")
+        description="Indian weather radar reader, merger, and gridder.")
     parser.add_argument(
         '--version',
         action='version',
@@ -81,7 +79,8 @@ def parse_args(args):
         dest="file_glob",
         help="file glob used to collect files",
         type=str,
-        metavar="file_glob")
+        metavar="file_glob",
+        required=True)
     parser.add_argument(
         '-or',
         '--output_radial',
@@ -146,18 +145,15 @@ def main(args):
     args = parse_args(args)
     setup_logging(args.loglevel)
     filename_glob = args.file_glob
-    # print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
     config = False
 
     if args.config_file:
-        # Need to pass config values through to subfunctions. 
         config = json.load(open(args.config_file))
     else:
         config = default_config
 
-    print(config)
-    print(np.array(config['grid_shape']))
-    print(np.array(config['grid_limits']))
+    _logger.debug("Config used:")
+    _logger.debug(config)
 
     radar = read_multi_radar(args.file_glob)
     
@@ -171,17 +167,13 @@ def main(args):
         gatefilter.include_all()
 
         _logger.debug("Gridding radar file")
-        grid = pyart.map.grid_from_radars(radar, grid_shape = tuple(config['grid_shape']), 
-                                            grid_limits=tuple(config['grid_limits']), 
-                                            fields=config['fields'],
-                                            gatefilter=gatefilter, 
-                                            weighting_function=config['weighting_function'],
-                                            roi_func=config['roi_func'])
+        config['grid_shape'] = tuple(config['grid_shape']) #Fix a weird pyart bug.
+
+        grid = pyart.map.grid_from_radars(radar, **config)
 
         _logger.debug("Writting Gridded file")
         pyart.io.write_grid(args.output_filename_gridded, grid, 
                                 write_point_lon_lat_alt=config['write_point_lon_lat'])
-
 
 
 def read_multi_radar(filename_glob):
@@ -189,6 +181,8 @@ def read_multi_radar(filename_glob):
 
     Parameters:
     -----------
+    filename_glob: str
+        Regex to grab filenames to merge into one volume.
     """
 
     filename_list = get_sorted_list(filename_glob)
