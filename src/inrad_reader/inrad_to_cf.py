@@ -169,6 +169,17 @@ def main(args):
         _logger.debug("Gridding radar file")
         config['grid_shape'] = tuple(config['grid_shape']) #Fix a weird pyart bug.
 
+        field_list = []
+        if 'fields' not in config:
+            for moment in MOMENT_NAME_MAPPING.values():
+                if moment in radar.fields:
+                    field_list.append(moment)
+                else:
+                    continue
+            config['fields'] = field_list
+
+        print(config['fields'])
+
         grid = pyart.map.grid_from_radars(radar, **config)
 
         _logger.debug("Writting Gridded file")

@@ -1,7 +1,6 @@
 {
     "grid_shape": [41, 301, 301],
     "grid_limits": [[0, 20000], [-150000, 150000], [-150000, 150000]],
-    "fields": ["reflectivity", "spectrum_width"],
     "roi_func": "dist",
     "weighting_function": "Cressman",
     "write_point_lon_lat": true,
