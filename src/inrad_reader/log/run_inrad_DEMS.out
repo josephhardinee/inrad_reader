@@ -1,0 +1,30 @@
+Tue Jan 28 09:32:02 PST 2020
+/project/projectdirs/m1657/zfeng/indian_radar/DEMS-RADAR/20180828/T_HAHA00_C_DEMS_20180828005229*
+
+## You are using the Python ARM Radar Toolkit (Py-ART), an open source
+## library for working with weather radar data. Py-ART is partly
+## supported by the U.S. Department of Energy as part of the Atmospheric
+## Radiation Measurement (ARM) Climate Research Facility, an Office of
+## Science user facility.
+##
+## If you use this software to prepare a publication, please cite:
+##
+##     JJ Helmus and SM Collis, JORS 2016, doi: 10.5334/jors.119
+
+example_config.json
+['total_power', 'reflectivity', 'mean_doppler_velocity', 'spectrum_width', 'differential_reflectivity', 'specific_differential_phase', 'differential_phase', 'normalized_coherent_power', 'copol_correlation_coeff', 'hydrometeor_classification']
+/project/projectdirs/m1657/zfeng/indian_radar/DEMS-RADAR/20180828/T_HAHA00_C_DEMS_20180828022230*
+
+## You are using the Python ARM Radar Toolkit (Py-ART), an open source
+## library for working with weather radar data. Py-ART is partly
+## supported by the U.S. Department of Energy as part of the Atmospheric
+## Radiation Measurement (ARM) Climate Research Facility, an Office of
+## Science user facility.
+##
+## If you use this software to prepare a publication, please cite:
+##
+##     JJ Helmus and SM Collis, JORS 2016, doi: 10.5334/jors.119
+
+example_config.json
+['total_power', 'reflectivity', 'mean_doppler_velocity', 'spectrum_width', 'differential_reflectivity', 'specific_differential_phase', 'differential_phase', 'normalized_coherent_power', 'copol_correlation_coeff', 'hydrometeor_classification']
+Tue Jan 28 09:33:22 PST 2020

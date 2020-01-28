@@ -6,7 +6,7 @@
 #SBATCH -C haswell
 #SBATCH --mail-user=jingyi.chen@pnnl.gov
 #SBATCH --nodes=1
-#SBATCH --time=00:30:00
+#SBATCH --time=00:10:00
 #SBATCH --output=./log/run_inrad_DEMS.out
 #SBATCH --exclusive
 
@@ -23,7 +23,8 @@ date
 radar_name="DEMS"
 date_str="20180828"
 
-for time_str in "005229","022230","035230","060230","080229","090024","113230","142023","144229"
+#for time_str in "005229" "022230" "035230" "060230" "080229" "090024" "113230" "142023" "144229"
+for time_str in "005229" "022230"
 do
 
 	input_name="/project/projectdirs/m1657/zfeng/indian_radar/${radar_name}-RADAR/${date_str}/T_HAHA00_C_${radar_name}_${date_str}${time_str}"

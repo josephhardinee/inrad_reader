@@ -6,7 +6,7 @@
 #SBATCH -C haswell
 #SBATCH --mail-user=jingyi.chen@pnnl.gov
 #SBATCH --nodes=1
-#SBATCH --time=00:30:00
+#SBATCH --time=00:10:00
 #SBATCH --output=./log/run_inrad_VANP.out
 #SBATCH --exclusive
 
@@ -23,7 +23,8 @@ date
 radar_name="VANP"
 date_str="20180706"
 
-for time_str in "001202" "071203" "092202" "105203" "122202" "174202" "190203" "202202" "232202"
+#for time_str in "001202" "071203" "092202" "105203" "122202" "174202" "190203" "202202" "232202"
+for time_str in "001202" "071203"
 do
 
 	input_name="/project/projectdirs/m1657/zfeng/indian_radar/${radar_name}-RADAR/${date_str}/T_HAHA00_C_${radar_name}_${date_str}${time_str}"

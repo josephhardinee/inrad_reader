@@ -150,7 +150,6 @@ def main(args):
     config = False
 
     if args.config_file:
-        print(args.config_file)
         config = json.load(open(args.config_file))
     else:
         config = default_config
