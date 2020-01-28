@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import glob
 import pyart
+import tempfile
 from datetime import datetime
 from datetime import timezone
 
@@ -14,7 +15,8 @@ import argparse
 import sys
 import logging
 import json
-from .default_config import default_config as default_config
+import sklearn.cluster
+from default_config import default_config as default_config
 
 from inrad_reader import __version__
 
@@ -157,6 +159,18 @@ def main(args):
 
     radar = read_multi_radar(args.file_glob)
     
+    # extract the elevation for each sweep (modified by Jingyi Chen)
+    nsweep = np.max(radar.sweep_number['data'])+1 # number of sweeps
+    elevation_data = radar.elevation['data']
+    kmeans_model = sklearn.cluster.KMeans(n_clusters=nsweep, random_state=0).fit(elevation_data.reshape(-1, 1))
+    ele_clusters = kmeans_model.fit_predict(elevation_data.reshape(-1, 1))
+    elevation_sweep = np.zeros(nsweep) # elevation for each sweep
+    for ii in range(nsweep):
+        unique, counts = np.unique(elevation_data[ele_clusters==ii], return_counts=True)
+        elevation_sweep[ii] = unique[np.argmax(counts)]
+    elevation_sweep = np.sort(elevation_sweep)   
+
+    # write to netcdf files
     if args.output_filename_radial:
         _logger.debug("Writing CF/Radial file")
         pyart.io.write_cfradial(args.output_filename_radial, radar)
@@ -164,7 +178,7 @@ def main(args):
 
     if args.output_filename_gridded:
         gatefilter = pyart.filters.GateFilter(radar)
-        gatefilter.include_all()
+        gatefilter.exclude_invalid('reflectivity')
 
         _logger.debug("Gridding radar file")
         config['grid_shape'] = tuple(config['grid_shape']) #Fix a weird pyart bug.
@@ -183,8 +197,22 @@ def main(args):
         grid = pyart.map.grid_from_radars(radar, **config)
 
         _logger.debug("Writting Gridded file")
-        pyart.io.write_grid(args.output_filename_gridded, grid, 
-                                write_point_lon_lat_alt=config['write_point_lon_lat'])
+#         pyart.io.write_grid(args.output_filename_gridded, grid, 
+#                                write_point_lon_lat_alt=config['write_point_lon_lat'])
+        temp_file = tempfile.NamedTemporaryFile()
+        pyart.io.write_grid(temp_file.name, grid, write_point_lon_lat_alt=config['write_point_lon_lat'])
+        gridradObj = xr.open_dataset(temp_file.name, decode_times=False)   
+        gridradObj.attrs['nsweep'] = nsweep
+        gridradObj.expand_dims({'nsweep':int(nsweep)})
+        gridradObj['elevation_sweep'] = (('nsweep'), elevation_sweep)
+        gridradObj.expand_dims({'unique_elevation':unique.shape[0]})
+        gridradObj['elevations'] = (('unique_elevation',unique))
+        gridradObj['counts_elevations'] = (('unique_elevation',counts))
+        comp = dict(zlib=True) # Set encoding/compression for all variables
+        encoding = {var: comp for var in gridradObj.data_vars}
+        gridradObj.to_netcdf(path=args.output_filename_gridded, mode='w', format='NETCDF4_CLASSIC', unlimited_dims='time', \
+                        encoding=encoding, )
+        
 
 
 def read_multi_radar(filename_glob):

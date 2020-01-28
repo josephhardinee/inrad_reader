@@ -1,0 +1,11 @@
+{
+    "grid_shape": [40, 301, 301],
+    "grid_limits": [[500, 20000], [-150000, 150000], [-150000, 150000]],
+    "roi_func": "dist",
+    "weighting_function": "BARNES2",
+    "write_point_lon_lat": true,
+    "min_radius": 500.0,
+    "z_factor": 0.05,
+    "xy_factor": 0.02,
+    "gridding_algo": "map_gates_to_grid"
+}
